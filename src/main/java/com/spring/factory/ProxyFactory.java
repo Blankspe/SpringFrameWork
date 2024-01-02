@@ -2,6 +2,7 @@ package com.spring.factory;
 
 import com.spring.MySpringApplicationContext;
 import com.spring.annotation.JoinPoint;
+import com.spring.aspect.ProcessedJointPoint;
 import com.spring.exception.BeanNotFoundException;
 import com.spring.userservice.UserServiceImpl;
 import com.spring.utilBean.AspectDefinition;
@@ -18,9 +19,9 @@ import java.util.Map;
 
 public class ProxyFactory {
 
-    private Map<String , String> aspectMap = new HashMap<>();
+    private Map<String , AspectDefinition> aspectMap = new HashMap<>();
 
-    public ProxyFactory(Map<String, String> aspectMap) {
+    public ProxyFactory(Map<String, AspectDefinition> aspectMap) {
         this.aspectMap = aspectMap;
         System.out.println(aspectMap);
     }
@@ -32,15 +33,15 @@ public class ProxyFactory {
                 @Override
                 public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
                     Object instance = null;
-                    if (aspectMap.containsValue(method.getName())) {
-                        System.out.println("UserServiceImpl已经被CGLIB成功代理了");
-                        System.out.println("前置通知");
+                    if (aspectMap.get(aclass.getSimpleName()).getMethodName().equals(method.getName())) {
+                        Method methodAround = aspectMap.get(aclass.getSimpleName()).getMethod();
+                        Class clazz = aspectMap.get(aclass.getSimpleName()).getClazz();
+                        Object instanceOfAspect = clazz.newInstance();
+                        instance = methodAround.invoke(instanceOfAspect,new ProcessedJointPoint(o,objects,methodProxy));
+                    }else{
+                        instance = methodProxy.invokeSuper(o,objects);
                     }
-                    System.out.println(method.getName());
-                    instance = methodProxy.invokeSuper(o, objects);
-                    if (aspectMap.containsValue(method.getName())){
-                        System.out.println("后置通知");
-                    }
+
                     return instance;
                 }
             });

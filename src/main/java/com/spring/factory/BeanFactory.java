@@ -23,7 +23,7 @@ import java.util.Map;
 public class BeanFactory {
     public static Map<String,Object> beanMap = new HashMap<>();
     public static Map<String,BeanDefinition> beanDefinitionMap = new HashMap<>();
-    public static Map<String,String> aspectMap = new HashMap<>();
+    public static Map<String,AspectDefinition> aspectMap = new HashMap<>();
 
     public void doCreateBean(Class clazz) throws ClassNotFoundException, InstantiationException, IllegalAccessException, BeanNotFoundException {
         //1.获取字节码文件路径
@@ -70,16 +70,22 @@ public class BeanFactory {
                 AspectDefinition aspectDefinition = new AspectDefinition();
                 Method[] declaredMethods = aClass.getDeclaredMethods();
                 for (Method method : declaredMethods) {
+                    String clazzName = "";
                     if (method.isAnnotationPresent(PointCut.class)) {
                         String methodToEnhance = method.getAnnotation(PointCut.class).value();
                         String methodName = methodToEnhance.substring(methodToEnhance.lastIndexOf('.')+1);
                         String clazzAllName = methodToEnhance.substring(
                                 0,methodToEnhance.lastIndexOf('.')
                         );
-                        String clazzName = clazzAllName.substring(clazzAllName.lastIndexOf('.')+1);
-                        aspectDefinition.setMethod(methodName);
-                        aspectMap.put(clazzName,methodName);
+                        clazzName = clazzAllName.substring(clazzAllName.lastIndexOf('.')+1);
+                        aspectDefinition.setMethodName(methodName);
                     }
+                    if (method.isAnnotationPresent(Around.class)){
+                        aspectDefinition.setMethod(method);
+                        aspectDefinition.setClazz(aClass);
+                    }
+                    aspectMap.put(clazzName,aspectDefinition);
+
                 }
 
 

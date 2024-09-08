@@ -1,0 +1,1 @@
+SpringFrameWork是一个对Java主流开发框架Spring中两大主要功能，IOC容器和AOP编程的一个简易实现，用到了工厂模式、单例模式等设计模式
